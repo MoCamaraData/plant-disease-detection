@@ -158,9 +158,9 @@ gcloud run deploy plant-api --image northamerica-northeast1-docker.pkg.dev/plant
 
 Accès en ligne
 
-L’API est accessible via l’URL Cloud Run fournie après le déploiement, par exemple :
+L’API est accessible via l’URL Cloud Run fournie après le déploiement :
 
-https://plant-api-xxxxx.run.app
+[https://plant-api-xxxxx.run.app](https://plant-api-53813388828.northamerica-northeast1.run.app/
 
 7. Problèmes rencontrés et ajustements
 
