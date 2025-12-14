@@ -105,7 +105,7 @@ class ResNet9(ImageClassificationBase):
 # -------------------------------------------
 
 # 👉 This is the BEST MODEL you saved in the notebook for ResNet9
-MODEL_PATH = os.getenv("MODEL_PATH", "./plant-disease-model.pth")
+MODEL_PATH = os.getenv("MODEL_PATH", "models\plant-disease-model.pth")
 
 DEVICE = torch.device("cpu")  # keep it simple
 
