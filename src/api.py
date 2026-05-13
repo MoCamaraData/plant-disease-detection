@@ -1,4 +1,7 @@
-# api.py
+# DEPRECATED: project no longer deployed (GCP free trial expired). Kept for reference.
+# Previously served the ResNet9 plant-disease classifier as a FastAPI inference endpoint
+# on Google Cloud Run. The training notebook (notebooks/plant_cv.ipynb) is the canonical
+# entry point for this repository now.
 
 import os
 import io
@@ -104,8 +107,8 @@ class ResNet9(ImageClassificationBase):
 # Config
 # -------------------------------------------
 
-# 👉 This is the BEST MODEL you saved in the notebook for ResNet9
-MODEL_PATH = os.getenv("MODEL_PATH", "models\plant-disease-model.pth")
+# Path to the best ResNet9 checkpoint saved from the notebook.
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join("models", "plant-disease-model.pth"))
 
 DEVICE = torch.device("cpu")  # keep it simple
 
@@ -165,7 +168,7 @@ TRANSFORM = transforms.Compose([
 
 app = FastAPI(
     title="Plant Disease Prediction API (ResNet9)",
-    description="API pour prédire la maladie d'une plante à partir d'une image de feuille (meilleur modèle ResNet9).",
+    description="API that predicts a plant disease from a leaf image using the best ResNet9 checkpoint.",
     version="1.0.0",
 )
 
@@ -174,19 +177,19 @@ model: Optional[nn.Module] = None
 
 def load_model(path: str) -> nn.Module:
     """
-    Charge un ResNet9 sauvegardé avec:
+    Load a ResNet9 checkpoint saved with:
         torch.save(model.state_dict(), PATH)
     """
     if not os.path.exists(path):
-        raise FileNotFoundError(f"Fichier modèle introuvable: {path}")
+        raise FileNotFoundError(f"Model file not found: {path}")
 
-    # Charger les poids (state_dict)
+    # Load the weights (state_dict)
     state_dict = torch.load(path, map_location=DEVICE)
 
-    # nombre de classes -> adapte si nécessaire (ex: 38 classes)
+    # Number of classes -- adjust if needed (e.g. 38 classes)
     num_classes = len(CLASS_NAMES) if CLASS_NAMES else 38
 
-    # reconstruire l'architecture EXACTE utilisée au training
+    # Rebuild the EXACT architecture used at training time
     net = ResNet9(in_channels=3, num_diseases=num_classes)
     net.load_state_dict(state_dict)
 
@@ -201,16 +204,16 @@ def startup_event():
     global model
     try:
         model = load_model(MODEL_PATH)
-        print(f"✅ Modèle ResNet9 chargé depuis {MODEL_PATH}")
+        print(f"ResNet9 model loaded from {MODEL_PATH}")
     except Exception as e:
-        print(f"❌ Erreur lors du chargement du modèle : {e}")
+        print(f"Error loading the model: {e}")
         traceback.print_exc()
         model = None
 
 
 @app.get("/health")
 def health():
-    """Vérifier le statut de l'API et le chargement du modèle."""
+    """Report API status and whether the model is loaded."""
     return {
         "status": "ok",
         "model_loaded": model is not None,
@@ -223,7 +226,7 @@ def preprocess_image(file_bytes: bytes) -> torch.Tensor:
     try:
         img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
     except Exception:
-        raise HTTPException(status_code=400, detail="Fichier image invalide.")
+        raise HTTPException(status_code=400, detail="Invalid image file.")
 
     img_t = TRANSFORM(img)          # (C, H, W)
     img_t = img_t.unsqueeze(0)      # (1, C, H, W)
@@ -233,19 +236,19 @@ def preprocess_image(file_bytes: bytes) -> torch.Tensor:
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     """
-    Prédire la maladie à partir d'une image de feuille.
+    Predict the disease from a leaf image.
 
     - Content-Type: multipart/form-data
-    - Champ: file (UploadFile, image)
+    - Field: file (UploadFile, image)
     """
     if model is None:
         raise HTTPException(
             status_code=503,
-            detail="Modèle non chargé. Vérifiez MODEL_PATH et les logs du serveur."
+            detail="Model not loaded. Check MODEL_PATH and server logs."
         )
 
     if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Le fichier doit être une image.")
+        raise HTTPException(status_code=400, detail="File must be an image.")
 
     try:
         file_bytes = await file.read()
@@ -285,20 +288,20 @@ async def predict(file: UploadFile = File(...)):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Erreur lors de la prédiction : {e}")
+        print(f"Prediction error: {e}")
         traceback.print_exc()
         raise HTTPException(
             status_code=500,
-            detail=f"Erreur serveur : {str(e)}"
+            detail=f"Server error: {str(e)}"
         )
 
 
 @app.get("/")
 def root():
-    """Endpoint racine avec liens utiles."""
+    """Root endpoint with helpful links."""
     return {
-        "message": "API ResNet9 pour la détection de maladies des plantes",
+        "message": "ResNet9 API for plant disease detection",
         "docs": "/docs",
         "health": "/health",
-        "predict": "POST /predict (multipart/form-data, champ: file)",
+        "predict": "POST /predict (multipart/form-data, field: file)",
     }

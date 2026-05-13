@@ -1,3 +1,11 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dataset (not committed)
+data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

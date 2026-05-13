@@ -1,74 +1,84 @@
-#  Journal de Projet – API FastAPI pour la Détection de Maladies des Plantes
+# DEPRECATED: project no longer deployed (GCP free trial expired). Kept for reference.
 
-##  Objectif du projet
-Le but du projet est de développer une API capable de recevoir une image de feuille et d’identifier automatiquement la maladie correspondante.  
-L’API sert d’interface entre un modèle IA (ResNet9) et un utilisateur ou une application externe.
+# Project Journal: FastAPI Service for Plant Disease Detection
 
-Elle permet :
-- de charger automatiquement le modèle sauvegardé,
-- de prétraiter des images,
-- d’effectuer une prédiction au format JSON,
-- d’être déployée facilement grâce à Docker.
+## Project goal
+
+The goal of this project was to build an API capable of receiving a leaf image and
+automatically identifying the corresponding disease. The API sat between the trained
+model (ResNet9) and an external user or application.
+
+It was responsible for:
+- loading the saved checkpoint at startup,
+- preprocessing incoming images,
+- returning a JSON prediction,
+- being easy to ship with Docker.
 
 ---
 
-##  Technologies utilisées
-- FastAPI (framework API)
-- Uvicorn (serveur ASGI)
-- PyTorch & Torchvision (chargement du modèle + preprocessing)
-- Pillow (lecture des images)
-- python-multipart (upload multipart)
-- Docker (conteneurisation)
+## Stack
+
+- FastAPI (API framework)
+- Uvicorn (ASGI server)
+- PyTorch & Torchvision (model loading and preprocessing)
+- Pillow (image I/O)
+- python-multipart (file uploads)
+- Docker (containerization)
 - Python 3.12
-##  Architecture de l’API
 
-L’API contient trois endpoints principaux :
+## API architecture
 
-| Endpoint | Méthode | Description |
-|---------|----------|-------------|
-| `/` | GET | Page d’accueil |
-| `/health` | GET | Vérifie l’état du modèle et du serveur |
-| `/predict` | POST | Reçoit une image et retourne la classe prédite |
+Three endpoints:
 
-Le modèle est chargé **une seule fois** au démarrage grâce au décorateur `@app.on_event("startup")`.
+| Endpoint   | Method | Description                                                |
+| ---------- | ------ | ---------------------------------------------------------- |
+| `/`        | GET    | Landing page with links                                    |
+| `/health`  | GET    | Reports whether the model is loaded                        |
+| `/predict` | POST   | Accepts an image and returns the predicted disease class   |
+
+The model is loaded once at startup via the `@app.on_event("startup")` hook.
 
 ---
 
-## Chargement du modèle
+## Loading the model
 
-Le modèle sauvegardé (`plant-disease-model.pth`) contient un **state_dict**.  
-Pour pouvoir le charger correctement, l’API doit :
+The saved checkpoint (`plant-disease-model.pth`) contains a `state_dict`. To load it,
+the API has to:
 
-1. reconstruire l’architecture ResNet9,
-2. charger les poids avec `load_state_dict`,
-3. mettre le modèle en mode évaluation avec `model.eval()`.
+1. rebuild the ResNet9 architecture,
+2. load the weights with `load_state_dict`,
+3. switch to evaluation mode via `model.eval()`.
 
-Le chemin du modèle est :
+The model path is:
 
 ```python
 MODEL_PATH = "./plant-disease-model.pth"
-##  Dockerisation de l’API
+```
 
-L’objectif de la dockerisation est de rendre l’API :
-- portable (même comportement sur n’importe quelle machine),
-- indépendante de l’environnement local (version de Python, packages, etc.),
-- simple à lancer avec une seule commande Docker.
+## Containerization
 
-L’API et le modèle sont intégrés dans une image Docker basée sur Python 3.12.
+Containerization made the API:
 
-###  Image Docker
+- portable across machines,
+- independent of the host's Python and package versions,
+- runnable with a single Docker command.
 
-Une image personnalisée `plant-api` est construite à partir d’un `Dockerfile` qui :
+The API and the model were bundled into a Docker image based on Python 3.12.
 
-- utilise une image de base `python:3.12-slim`,
-- installe les dépendances système nécessaires (Pillow, etc),
-- installe PyTorch en version CPU,
-- installe les dépendances de l’API via `requirements.txt`,
-- copie le fichier du modèle `plant-disease-model.pth`,
-- expose le port `8000`,
-- lance le serveur Uvicorn avec FastAPI.
+### Image
 
-La commande de construction est :
+A custom `plant-api` image was built from a `Dockerfile` that:
+
+- starts from `python:3.12-slim`,
+- installs the system dependencies needed by Pillow,
+- installs the CPU build of PyTorch,
+- installs the API dependencies from `requirements.txt`,
+- copies the `plant-disease-model.pth` checkpoint,
+- exposes port `8000`,
+- starts the Uvicorn server.
+
+The build command was:
 
 ```bash
 docker build -t plant-api .
+```
