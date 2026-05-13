@@ -107,4 +107,4 @@ MIT.
 
 ## Contact
 
-Mohamed Sanoussy Camara · [LinkedIn](https://www.linkedin.com/) · [Portfolio](https://mocamara-data-portfolio.vercel.app) · [GitHub](https://github.com/MoCamaraData)
+Mohamed Sanoussy Camara · [LinkedIn](https://www.linkedin.com/in/mohamed-sanoussy-camara) · [Portfolio](https://mocamara-data-portfolio.vercel.app) · [GitHub](https://github.com/MoCamaraData)
